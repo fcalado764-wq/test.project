@@ -1,0 +1,88 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard — Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">🎟</div>
+        <div class="stat-body">
+            <div class="stat-label">Total de Vendas</div>
+            <div class="stat-value">{{ total_vendas }}</div>
+        </div>
+    </div>
+    <div class="stat-card gold">
+        <div class="stat-icon">💰</div>
+        <div class="stat-body">
+            <div class="stat-label">Receita Total</div>
+            <div class="stat-value">{{ format_kz(receita_total) }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🗓</div>
+        <div class="stat-body">
+            <div class="stat-label">Eventos Activos</div>
+            <div class="stat-value">{{ total_eventos }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-grid-2">
+
+    <!-- Top Eventos -->
+    <div class="admin-card">
+        <div class="card-head">
+            <h3>Top Eventos por Vendas</h3>
+        </div>
+        <table class="admin-table">
+            <thead>
+                <tr><th>Evento</th><th>Categoria</th><th>Vendas</th><th>Receita</th></tr>
+            </thead>
+            <tbody>
+                {% for ev in top_events %}
+                <tr>
+                    <td><strong>{{ ev.title }}</strong></td>
+                    <td><span class="badge">{{ ev.category }}</span></td>
+                    <td>{{ ev.vendas }}</td>
+                    <td class="gold-text">{{ format_kz(ev.receita) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="text-align:center;color:#888">Sem dados ainda</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Compras Recentes -->
+    <div class="admin-card">
+        <div class="card-head">
+            <h3>Compras Recentes</h3>
+            <a href="{{ url_for('admin_compras') }}" class="card-link">Ver todas →</a>
+        </div>
+        <table class="admin-table">
+            <thead>
+                <tr><th>Bilhete</th><th>Cliente</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+                {% for p in recent_purchases %}
+                <tr>
+                    <td><code>{{ p.ticket_number }}</code></td>
+                    <td>{{ p.customer_name }}</td>
+                    <td>
+                        <span class="status-badge {{ 'paid' if p.payment_status == 'paid' else 'demo' }}">
+                            {{ '✅ Pago' if p.payment_status == 'paid' else '🔵 Demo' }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align:center;color:#888">Sem compras ainda</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

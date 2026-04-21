@@ -1,0 +1,59 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Eventos — Admin{% endblock %}
+{% block page_title %}Gestão de Eventos{% endblock %}
+
+{% block content %}
+
+<div class="page-actions">
+    <a href="{{ url_for('admin_novo_evento') }}" class="btn-primary">+ Novo Evento</a>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Evento</th>
+                <th>Categoria</th>
+                <th>Data</th>
+                <th>Preço</th>
+                <th>Disponíveis</th>
+                <th>Vendas</th>
+                <th>Estado</th>
+                <th>Acções</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ev in events %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span>{{ ev.image_icon }}</span>
+                        <strong>{{ ev.title }}</strong>
+                    </div>
+                </td>
+                <td><span class="badge">{{ ev.category }}</span></td>
+                <td>{{ ev.date }}</td>
+                <td class="gold-text">{{ format_kz(ev.price) }}</td>
+                <td>{{ ev.available }}</td>
+                <td>{{ ev.vendas }}</td>
+                <td>
+                    <span class="status-badge {{ 'paid' if ev.active else 'inactive' }}">
+                        {{ '✅ Activo' if ev.active else '⛔ Inactivo' }}
+                    </span>
+                </td>
+                <td>
+                    <div style="display:flex;gap:8px;">
+                        <a href="{{ url_for('admin_editar_evento', event_id=ev.id) }}" class="btn-sm">Editar</a>
+                        <form method="POST" action="{{ url_for('admin_apagar_evento', event_id=ev.id) }}"
+                              onsubmit="return confirm('Desactivar este evento?')">
+                            <button type="submit" class="btn-sm danger">Desactivar</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

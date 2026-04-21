@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Bilhete Confirmado — Ticket Angola{% endblock %}
+{% block content %}
+
+<section class="success-section">
+    <div class="container">
+        <div class="success-box">
+            <div class="check-circle">✓</div>
+            <h1 class="success-title">Bilhete Confirmado!</h1>
+            <p class="success-sub">O seu bilhete foi gerado com sucesso. Faça o download abaixo.</p>
+
+            <div class="ticket-preview">
+                <div class="ticket-stripe"></div>
+                <div class="ticket-content">
+                    <div class="ticket-top">
+                        <span class="ticket-icon">{{ purchase.image_icon }}</span>
+                        <div>
+                            <div class="ticket-event-name">{{ purchase.title }}</div>
+                            <div class="ticket-category">{{ purchase.category }}</div>
+                        </div>
+                    </div>
+                    <div class="ticket-divider">
+                        <span class="divider-circle left"></span>
+                        <div class="divider-line"></div>
+                        <span class="divider-circle right"></span>
+                    </div>
+                    <div class="ticket-bottom">
+                        <div class="tb-item"><div class="tb-label">Titular</div><div class="tb-val">{{ purchase.customer_name }}</div></div>
+                        <div class="tb-item"><div class="tb-label">Data</div><div class="tb-val">{{ purchase.date }}</div></div>
+                        <div class="tb-item"><div class="tb-label">Hora</div><div class="tb-val">{{ purchase.time }}</div></div>
+                        <div class="tb-item highlight"><div class="tb-label">Nº Bilhete</div><div class="tb-val">{{ purchase.ticket_number }}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <a href="{{ url_for('download', filename=purchase.pdf_filename) }}" class="btn-download" id="dlBtn">
+                    ⬇ Download do Bilhete PDF
+                </a>
+                <a href="{{ url_for('index') }}" class="btn-more">Ver mais eventos</a>
+            </div>
+
+            <p class="success-note">
+                Local: <strong>{{ purchase.location }}</strong><br>
+                Estado do pagamento: <strong>{{ "✅ Pago" if purchase.payment_status == "paid" else "🔵 Demonstração" }}</strong>
+            </p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+setTimeout(() => document.getElementById('dlBtn').click(), 1500);
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Compras — Admin{% endblock %}
+{% block page_title %}Lista de Compras{% endblock %}
+
+{% block content %}
+
+<div class="admin-card">
+    <div class="card-head">
+        <h3>Todas as Compras ({{ purchases|length }})</h3>
+    </div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Nº Bilhete</th>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Evento</th>
+                <th>Valor</th>
+                <th>Estado</th>
+                <th>Data</th>
+                <th>PDF</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in purchases %}
+            <tr>
+                <td><code>{{ p.ticket_number }}</code></td>
+                <td><strong>{{ p.customer_name }}</strong></td>
+                <td style="color:#888;font-size:0.85rem">{{ p.customer_email }}</td>
+                <td>{{ p.event_title }}</td>
+                <td class="gold-text">{{ format_kz(p.amount) }}</td>
+                <td>
+                    <span class="status-badge {{ p.payment_status }}">
+                        {% if p.payment_status == 'paid' %}✅ Pago
+                        {% elif p.payment_status == 'demo' %}🔵 Demo
+                        {% else %}⏳ Pendente{% endif %}
+                    </span>
+                </td>
+                <td style="font-size:0.82rem;color:#888">
+                    {{ p.created_at.strftime('%d/%m/%Y %H:%M') if p.created_at else '—' }}
+                </td>
+                <td>
+                    {% if p.pdf_filename %}
+                    <a href="{{ url_for('download', filename=p.pdf_filename) }}" class="btn-sm">⬇ PDF</a>
+                    {% else %}—{% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" style="text-align:center;color:#888;padding:32px">Sem compras registadas ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

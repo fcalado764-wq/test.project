@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin — Ticket Angola</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-login-body">
+
+<div class="login-box">
+    <div class="login-logo">
+        <span>🎟</span>
+        <span>Ticket Angola</span>
+    </div>
+    <h2 class="login-title">Painel de Administração</h2>
+    <p class="login-sub">Acesso restrito a administradores</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Utilizador</label>
+            <input type="text" id="username" name="username" placeholder="admin" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">Entrar no Painel →</button>
+    </form>
+
+    <p class="login-hint">Credenciais padrão: <code>admin</code> / <code>admin123</code></p>
+    <a href="{{ url_for('index') }}" class="back-link" style="display:block;text-align:center;margin-top:16px;">← Voltar ao site</a>
+</div>
+
+</body>
+</html>

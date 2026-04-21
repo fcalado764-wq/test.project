@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin — Ticket Angola{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+
+<div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>🎟</span>
+            <span>Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}" class="sn-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                <span>📊</span> Dashboard
+            </a>
+            <a href="{{ url_for('admin_eventos') }}" class="sn-link {% if 'evento' in request.endpoint %}active{% endif %}">
+                <span>🗓</span> Eventos
+            </a>
+            <a href="{{ url_for('admin_compras') }}" class="sn-link {% if request.endpoint == 'admin_compras' %}active{% endif %}">
+                <span>🎟</span> Compras
+            </a>
+            <div class="sn-divider"></div>
+            <a href="{{ url_for('index') }}" class="sn-link">
+                <span>🌐</span> Ver Site
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="sn-link sn-logout">
+                <span>🚪</span> Sair
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="admin-main">
+        <header class="admin-header">
+            <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            <div class="admin-user">
+                <span>👤</span>
+                <span>{{ session.admin_username }}</span>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="admin-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

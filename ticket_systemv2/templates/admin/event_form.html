@@ -1,0 +1,79 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ 'Editar' if event else 'Novo' }} Evento — Admin{% endblock %}
+{% block page_title %}{{ 'Editar Evento' if event else 'Novo Evento' }}{% endblock %}
+
+{% block content %}
+
+<div class="admin-card" style="max-width:720px">
+    <form method="POST">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Título do Evento *</label>
+                <input type="text" name="title" value="{{ event.title if event else '' }}" required placeholder="Ex: Festival de Música Luanda">
+            </div>
+            <div class="form-group" style="max-width:100px">
+                <label>Ícone</label>
+                <input type="text" name="image_icon" value="{{ event.image_icon if event else '🎟' }}" placeholder="🎟">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Descrição</label>
+            <textarea name="description" rows="3" placeholder="Descrição do evento...">{{ event.description if event else '' }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Data *</label>
+                <input type="text" name="date" value="{{ event.date if event else '' }}" required placeholder="Ex: 15 de Junho, 2025">
+            </div>
+            <div class="form-group">
+                <label>Hora *</label>
+                <input type="text" name="time" value="{{ event.time if event else '' }}" required placeholder="Ex: 19:00">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Local *</label>
+            <input type="text" name="location" value="{{ event.location if event else '' }}" required placeholder="Ex: Estádio da Cidadela, Luanda">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Preço (Kz) *</label>
+                <input type="number" name="price" value="{{ event.price if event else '' }}" required min="0" placeholder="Ex: 500000">
+            </div>
+            <div class="form-group">
+                <label>Bilhetes Disponíveis *</label>
+                <input type="number" name="available" value="{{ event.available if event else 100 }}" required min="0">
+            </div>
+            <div class="form-group">
+                <label>Categoria *</label>
+                <select name="category" required>
+                    {% for cat in ['Música','Tecnologia','Arte','Desporto','Teatro','Workshop','Conferência','Outro'] %}
+                    <option value="{{ cat }}" {{ 'selected' if event and event.category == cat else '' }}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        {% if event %}
+        <div class="form-group">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" name="active" {{ 'checked' if event.active else '' }}>
+                Evento activo (visível no site)
+            </label>
+        </div>
+        {% endif %}
+
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn-primary">
+                {{ '💾 Guardar Alterações' if event else '✨ Criar Evento' }}
+            </button>
+            <a href="{{ url_for('admin_eventos') }}" class="btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

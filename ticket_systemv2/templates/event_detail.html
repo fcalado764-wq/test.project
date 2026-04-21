@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} — Ticket Angola{% endblock %}
+
+{% block extra_css %}
+<style>
+#payment-element { margin-bottom: 20px; }
+#payment-message { color: #e74c3c; font-size: 0.875rem; margin-bottom: 14px; display:none; }
+.stripe-badge { display:flex; align-items:center; gap:6px; justify-content:center; font-size:0.75rem; color:#888; margin-top:10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="detail-section">
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back-link">← Voltar aos eventos</a>
+        <div class="detail-grid">
+
+            <div class="detail-info">
+                <div class="detail-icon">{{ event.image_icon }}</div>
+                <span class="detail-category">{{ event.category }}</span>
+                <h1 class="detail-title">{{ event.title }}</h1>
+                <p class="detail-desc">{{ event.description }}</p>
+                <div class="detail-facts">
+                    <div class="fact-item"><div class="fact-icon">📅</div><div><div class="fact-label">Data</div><div class="fact-val">{{ event.date }}</div></div></div>
+                    <div class="fact-item"><div class="fact-icon">⏰</div><div><div class="fact-label">Hora</div><div class="fact-val">{{ event.time }}</div></div></div>
+                    <div class="fact-item"><div class="fact-icon">📍</div><div><div class="fact-label">Local</div><div class="fact-val">{{ event.location }}</div></div></div>
+                    <div class="fact-item"><div class="fact-icon">🎟</div><div><div class="fact-label">Disponíveis</div><div class="fact-val">{{ event.available }}</div></div></div>
+                </div>
+                <div class="price-badge">
+                    <span class="price-label">Preço por bilhete</span>
+                    <span class="price-value">{{ "{:,.0f}".format(event.price).replace(",",".") }} Kz</span>
+                </div>
+            </div>
+
+            <div class="purchase-form-box">
+                <div class="form-header">
+                    <h2>Comprar Bilhete</h2>
+                    <p>Preencha os dados e efectue o pagamento.</p>
+                </div>
+
+                <!-- Dados do Cliente -->
+                <div class="form-group">
+                    <label for="customer_name">Nome Completo *</label>
+                    <input type="text" id="customer_name" placeholder="Ex: João Manuel da Silva" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer_email">Email *</label>
+                    <input type="email" id="customer_email" placeholder="Ex: joao@email.com" required>
+                </div>
+
+                <div class="form-summary">
+                    <div class="summary-row"><span>Evento</span><span>{{ event.title }}</span></div>
+                    <div class="summary-row"><span>Data</span><span>{{ event.date }}</span></div>
+                    <div class="summary-row total"><span>Total</span><span>{{ "{:,.0f}".format(event.price).replace(",",".") }} Kz</span></div>
+                </div>
+
+                <!-- Stripe ou Demo -->
+                {% if stripe_key %}
+                <div id="payment-element"></div>
+                <div id="payment-message"></div>
+                {% else %}
+                <div class="demo-notice">
+                    ⚠️ <strong>Modo Demonstração</strong> — Stripe não configurado.<br>
+                    O bilhete será gerado sem pagamento real.
+                </div>
+                {% endif %}
+
+                <button id="btn-pagar" class="btn-submit">
+                    <span id="btn-text">🎟 {{ 'Pagar e Obter Bilhete' if stripe_key else 'Gerar Bilhete (Demo)' }}</span>
+                    <span id="btn-loading" style="display:none">⏳ A processar...</span>
+                </button>
+
+                <div class="stripe-badge">
+                    🔒 Pagamento seguro {{ '· Powered by Stripe' if stripe_key else '· Modo demonstração' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{% if stripe_key %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const stripe = Stripe("{{ stripe_key }}");
+let elements, paymentElement;
+
+async function initStripe() {
+    const name = document.getElementById('customer_name').value.trim();
+    const email = document.getElementById('customer_email').value.trim();
+    if (!name || !email) return;
+
+    const res = await fetch("/criar-pagamento/{{ event.id }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({customer_name: name, customer_email: email})
+    });
+    const data = await res.json();
+    if (data.error) { showMsg(data.error); return; }
+
+    if (data.demo_mode) { handleDemo(data); return; }
+
+    elements = stripe.elements({clientSecret: data.client_secret});
+    paymentElement = elements.create("payment");
+    paymentElement.mount("#payment-element");
+    window._paymentIntentId = data.payment_intent_id;
+}
+
+document.getElementById('customer_email').addEventListener('blur', initStripe);
+
+document.getElementById('btn-pagar').addEventListener('click', async () => {
+    const name = document.getElementById('customer_name').value.trim();
+    const email = document.getElementById('customer_email').value.trim();
+    if (!name || !email) { showMsg("Preencha nome e email."); return; }
+    setBusy(true);
+
+    const {error} = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required"
+    });
+
+    if (error) { showMsg(error.message); setBusy(false); return; }
+
+    const res = await fetch("/confirmar-compra", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({event_id: {{ event.id }}, customer_name: name,
+                              customer_email: email, payment_intent_id: window._paymentIntentId})
+    });
+    const d = await res.json();
+    if (d.success) window.location.href = `/sucesso?ticket=${d.ticket_number}&file=${d.filename}`;
+    else { showMsg(d.error || "Erro ao confirmar compra."); setBusy(false); }
+});
+
+function showMsg(msg) {
+    const el = document.getElementById('payment-message');
+    el.textContent = msg; el.style.display = 'block';
+}
+function setBusy(busy) {
+    document.getElementById('btn-pagar').disabled = busy;
+    document.getElementById('btn-text').style.display = busy ? 'none' : '';
+    document.getElementById('btn-loading').style.display = busy ? '' : 'none';
+}
+
+async function handleDemo(data) {
+    const res = await fetch("/confirmar-compra", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({...data, demo_mode: true})
+    });
+    const d = await res.json();
+    if (d.success) window.location.href = `/sucesso?ticket=${d.ticket_number}&file=${d.filename}`;
+}
+</script>
+
+{% else %}
+<script>
+document.getElementById('btn-pagar').addEventListener('click', async () => {
+    const name = document.getElementById('customer_name').value.trim();
+    const email = document.getElementById('customer_email').value.trim();
+    if (!name || !email) { alert("Preencha nome e email."); return; }
+
+    document.getElementById('btn-text').style.display = 'none';
+    document.getElementById('btn-loading').style.display = '';
+    document.getElementById('btn-pagar').disabled = true;
+
+    const r1 = await fetch("/criar-pagamento/{{ event.id }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({customer_name: name, customer_email: email})
+    });
+    const d1 = await r1.json();
+
+    const r2 = await fetch("/confirmar-compra", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({...d1, demo_mode: true, event_id: {{ event.id }}})
+    });
+    const d2 = await r2.json();
+    if (d2.success) window.location.href = `/sucesso?ticket=${d2.ticket_number}&file=${d2.filename}`;
+    else alert(d2.error || "Erro.");
+});
+</script>
+{% endif %}
+{% endblock %}

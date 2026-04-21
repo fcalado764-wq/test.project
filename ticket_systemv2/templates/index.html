@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Ticket Angola — Eventos{% endblock %}
+{% block content %}
+
+<section class="hero">
+    <div class="hero-content">
+        <p class="hero-tag">Plataforma de Bilhetes Online</p>
+        <h1 class="hero-title">Os melhores eventos<br><em>de Angola</em></h1>
+        <p class="hero-sub">Compre o seu bilhete online e receba um comprovativo PDF instantaneamente.</p>
+    </div>
+    <div class="hero-decoration">
+        <div class="deco-circle c1"></div>
+        <div class="deco-circle c2"></div>
+        <div class="deco-circle c3"></div>
+    </div>
+</section>
+
+<section class="events-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Eventos Disponíveis</h2>
+            <p class="section-sub">{{ events|length }} eventos encontrados</p>
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">Todos</button>
+            {% set cats = events | map(attribute='category') | unique | list %}
+            {% for cat in cats %}
+            <button class="filter-btn" data-filter="{{ cat }}">{{ cat }}</button>
+            {% endfor %}
+        </div>
+
+        <div class="events-grid">
+            {% for event in events %}
+            <article class="event-card" data-category="{{ event.category }}">
+                <div class="card-icon">{{ event.image_icon }}</div>
+                <div class="card-category">{{ event.category }}</div>
+                <h3 class="card-title">{{ event.title }}</h3>
+                <p class="card-desc">{{ event.description }}</p>
+                <div class="card-meta">
+                    <div class="meta-item"><span>📅</span><span>{{ event.date }}</span></div>
+                    <div class="meta-item"><span>⏰</span><span>{{ event.time }}</span></div>
+                    <div class="meta-item"><span>📍</span><span>{{ event.location }}</span></div>
+                </div>
+                <div class="card-footer">
+                    <div class="card-price">{{ "{:,.0f}".format(event.price).replace(",",".") }} Kz</div>
+                    <a href="{{ url_for('evento', event_id=event.id) }}" class="btn-comprar">Comprar →</a>
+                </div>
+                <div class="card-availability">
+                    <span class="avail-dot"></span>{{ event.available }} bilhetes disponíveis
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const f = btn.dataset.filter;
+        document.querySelectorAll('.event-card').forEach(c => {
+            c.style.display = (f === 'all' || c.dataset.category === f) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
